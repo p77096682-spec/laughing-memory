@@ -1,0 +1,42 @@
+# Script mưa trái cây trong Blox Fruit
+import random
+
+# Danh sách các loại quả Blox Fruit (theo giả định)
+BLOX_FRUIT = ["Táo điện", "Cam lửa", "Dâu ma thuật", "Nho vàng rực"]
+
+# Xác suất xuất hiện của mỗi loại quả Blox Fruit
+BLOX_PROBABILITY = {
+    "Táo điện": 0.25,
+    "Cam lửa": 0.3,
+    "Dâu ma thuật": 0.2,
+    "Nho vàng rực": 0.25
+}
+
+def get_random_blox_fruit():
+    # Chọn ngẫu nhiên một loại quả Blox Fruit dựa trên xác suất
+    random_fruit = random.choices(BLOX_FRUIT, weights=list(BLOX_PROBABILITY.values()), k=1)[0]
+    return random_fruit
+
+def rain_blox_fruit(seconds=5, scale_factor=1.5):
+    # Khởi tạo bộ đếm thời gian và xác định tốc độ mưa quả
+    timer = seconds
+    rain_speed = 0.1 * scale_factor
+
+    # Bắt đầu mưa quả Blox Fruit
+    while timer > 0:
+        for _ in range(int(1 / rain_speed)):
+            # Chọn một loại quả Blox Fruit ngẫu nhiên
+            fruit = get_random_blox_fruit()
+            # In ra tên quả và tạo hiệu ứng rơi trong thế giới Blox Fruit
+            print(f"  {fruit}")
+            print("\n".join(f"{'*' * (len(fruit) + 2)}\n {fruit.center(len(fruit) + 4)}\n{'*' * (len(fruit) + 2)}" for _ in range(1, 4)))
+            print()
+            timer -= rain_speed
+        # Tạm dừng một chút trước khi tiếp tục mưa quả
+        timer -= 0.5
+
+    # Kết thúc màn mưa quả Blox Fruit
+    print("Trái cây Blox Fruit là nguồn năng lượng tuyệt vời!\n" + "-" * 20)
+
+# Thực hiện mưa quả Blox Fruit trong 5 giây
+rain_blox_fruit()
