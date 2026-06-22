@@ -1,42 +1,69 @@
-# Script mưa trái cây trong Blox Fruit
-import random
+-- Đặt Script này trong ServerScriptService
+local Players = game:GetService("Players")
 
-# Danh sách các loại quả Blox Fruit (theo giả định)
-BLOX_FRUIT = ["Táo điện", "Cam lửa", "Dâu ma thuật", "Nho vàng rực"]
-
-# Xác suất xuất hiện của mỗi loại quả Blox Fruit
-BLOX_PROBABILITY = {
-    "Táo điện": 0.25,
-    "Cam lửa": 0.3,
-    "Dâu ma thuật": 0.2,
-    "Nho vàng rực": 0.25
+-- Danh sách các loại trái cây mẫu (Bạn có thể đổi tên, màu sắc và giá trị tiền thưởng)
+local fruitTypes = {
+	{Name = "Kilo Fruit", Color = Color3.fromRGB(150, 150, 150), Value = 10},
+	{Name = "Chop Fruit", Color = Color3.fromRGB(200, 50, 50), Value = 50},
+	{Name = "Light Fruit", Color = Color3.fromRGB(255, 255, 100), Value = 200},
+	{Name = "Magma Fruit", Color = Color3.fromRGB(255, 100, 0), Value = 500}
 }
 
-def get_random_blox_fruit():
-    # Chọn ngẫu nhiên một loại quả Blox Fruit dựa trên xác suất
-    random_fruit = random.choices(BLOX_FRUIT, weights=list(BLOX_PROBABILITY.values()), k=1)[0]
-    return random_fruit
+local function spawnFruit()
+	-- Chọn ngẫu nhiên 1 loại trái cây trong danh sách
+	local randomFruit = fruitTypes[math.random(1, #fruitTypes)]
+	
+	-- Tạo phần thân cho trái cây
+	local fruit = Instance.new("Part")
+	fruit.Name = randomFruit.Name
+	fruit.Shape = Enum.PartType.Ball -- Hình tròn (giống trái cây)
+	fruit.Size = Vector3.new(2, 2, 2)
+	fruit.Color = randomFruit.Color
+	fruit.Material = Enum.Material.Neon -- Làm trái cây phát sáng cho đẹp
+	
+	-- Tọa độ rơi ngẫu nhiên (Thay đổi khoảng -100 đến 100 tùy theo độ rộng map của bạn)
+	local randomX = math.random(-100, 100)
+	local randomZ = math.random(-100, 100)
+	fruit.Position = Vector3.new(randomX, 60, randomZ) -- Rơi từ độ cao 60
+	
+	fruit.Parent = workspace
+	
+	-- Xử lý khi có người chơi chạm vào (Ăn trái cây)
+	local touchedConnection
+	touchedConnection = fruit.Touched:Connect(function(hit)
+		local player = Players:GetPlayerFromCharacter(hit.Parent)
+		
+		if player then
+			-- Ngắt kết nối ngay để tránh một người chạm nhiều lần
+			touchedConnection:Disconnect()
+			
+			-- Cộng tiền (Beli) vào leaderstats của người chơi
+			local leaderstats = player:FindFirstChild("leaderstats")
+			if leaderstats then
+				local beli = leaderstats:FindFirstChild("Beli") or leaderstats:FindFirstChild("Money")
+				if beli then
+					beli.Value = beli.Value + randomFruit.Value
+				end
+			end
+			
+			-- Hiệu ứng thông báo (Tùy chọn)
+			print(player.Name .. " đã ăn " .. fruit.Name .. " và nhận được " .. randomFruit.Value .. " Beli!")
+			
+			-- Xóa trái cây sau khi ăn
+			fruit:Destroy()
+		end
+	end)
+	
+	-- Nếu sau 20 giây không ai ăn, trái cây tự biến mất để tránh lag game
+	task.delay(20, function()
+		if fruit and fruit.Parent then
+			fruit:Destroy()
+		end
+	end)
+end
 
-def rain_blox_fruit(seconds=5, scale_factor=1.5):
-    # Khởi tạo bộ đếm thời gian và xác định tốc độ mưa quả
-    timer = seconds
-    rain_speed = 0.1 * scale_factor
-
-    # Bắt đầu mưa quả Blox Fruit
-    while timer > 0:
-        for _ in range(int(1 / rain_speed)):
-            # Chọn một loại quả Blox Fruit ngẫu nhiên
-            fruit = get_random_blox_fruit()
-            # In ra tên quả và tạo hiệu ứng rơi trong thế giới Blox Fruit
-            print(f"  {fruit}")
-            print("\n".join(f"{'*' * (len(fruit) + 2)}\n {fruit.center(len(fruit) + 4)}\n{'*' * (len(fruit) + 2)}" for _ in range(1, 4)))
-            print()
-            timer -= rain_speed
-        # Tạm dừng một chút trước khi tiếp tục mưa quả
-        timer -= 0.5
-
-    # Kết thúc màn mưa quả Blox Fruit
-    print("Trái cây Blox Fruit là nguồn năng lượng tuyệt vời!\n" + "-" * 20)
-
-# Thực hiện mưa quả Blox Fruit trong 5 giây
-rain_blox_fruit()
+-- Vòng lặp tạo mưa trái cây (Cứ mỗi 3 giây rơi 1 quả)
+while true do
+	spawnFruit()
+	task.wait(3)
+end
